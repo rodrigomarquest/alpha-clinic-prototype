@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" class="transition-colors duration-300">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Roriz Linhares – Booking & Engagement</title>
+    <!-- Tailwind via CDN (prototype) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: 'class' };
+    </script>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col items-center p-4">
+    <!-- Role selection overlay (first visit) -->
+    <section id="roleOverlay" class="fixed inset-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col justify-center items-center gap-8 z-50 hidden">
+      <div class="text-center">
+        <h2 id="txtWelcome" class="text-2xl font-bold mb-2">Welcome!</h2>
+        <p id="txtSelectRole" class="text-gray-600 dark:text-gray-400">Please select your role:</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <button id="btnPatient" class="px-6 py-3 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition">I'm a Patient</button>
+        <button id="btnStaff" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition">I'm Staff</button>
+      </div>
+    </section>
+
+    <!-- Header with theme, language & logoff -->
+    <header class="w-full max-w-3xl mb-6 flex items-center justify-between">
+      <div class="text-center flex-1">
+        <h1 class="text-3xl font-bold mb-1">Clínica Roriz Linhares</h1>
+        <p id="txtSubtitle" class="text-lg text-gray-600 dark:text-gray-400">Self‑service booking & engagement dashboard</p>
+      </div>
+      <div class="flex items-center gap-3 ml-4">
+        <!-- Language switch -->
+        <button id="langEn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xl" title="English">🇬🇧</button>
+        <button id="langPt" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xl" title="Português">🇧🇷</button>
+        <button id="langEs" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition text-xl" title="Español">🇪🇸</button>
+        <!-- Theme toggle -->
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition" title="Theme">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path id="iconThemePath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707M17.657 17.657l.707.707M12 5a7 7 0 000 14 7 7 0 000-14z" />
+          </svg>
+        </button>
+        <!-- Logoff -->
+        <button id="logoff" class="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-800 transition" title="Change role">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Booking Wizard -->
+    <section id="booking" class="w-full max-w-3xl bg-white dark:bg-gray-800 shadow rounded-2xl p-6 mb-8">
+      <h2 id="txtNewAppt" class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        New Appointment
+      </h2>
+      <form id="bookingForm" class="grid gap-4 sm:grid-cols-3">
+        <input type="text" id="patientName" placeholder="Patient name" class="col-span-3 sm:col-span-1 border rounded p-2 bg-transparent" />
+        <input type="date" id="apptDate" class="col-span-3 sm:col-span-1 border rounded p-2 bg-transparent" required />
+        <input type="time" id="apptTime" class="col-span-3 sm:col-span-1 border rounded p-2 bg-transparent" required />
+        <button type="submit" id="btnAdd" class="col-span-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition">Add Booking</button>
+      </form>
+    </section>
+
+    <!-- Appointments List -->
+    <section id="appointments" class="w-full max-w-3xl bg-white dark:bg-gray-800 shadow rounded-2xl p-6 mb-8">
+      <h2 id="appointmentsHeader" class="text-xl font-semibold mb-4">All Upcoming Sessions</h2>
+      <ul id="appointmentsList" class="space-y-4"></ul>
+      <p id="emptyState" class="text-gray-500 dark:text-gray-400 text-center">No appointments yet.</p>
+    </section>
+
+    <footer class="text-sm text-gray-500 dark:text-gray-400 mt-auto py-6">
+      Prototype for MSc AI4B – Customer Engagement & AI · Built with ❤️ & JavaScript
+    </footer>
+
+    <script>
+      /* Keys & utilities */
+      const KEYS = {
+        ROLE: 'crl_role',
+        NAME: 'crl_name',
+        APPTS: 'crl_appts',
+        THEME: 'crl_theme',
+        LANG: 'crl_lang'
+      };
+      const $ = s => document.querySelector(s);
+      const root = document.documentElement;
+
+      /* I18N */
+      const I18N = {
+        en: {
+          welcome: 'Welcome!',
+          selectRole: 'Please select your role:',
+          patient: "I'm a Patient",
+          staff: "I'm Staff",
+          subtitle: 'Self‑service booking & engagement dashboard',
+          newAppt: 'New Appointment',
+          patientPh: 'Patient name',
+          add: 'Add Booking',
+          all: 'All Upcoming Sessions',
+          mine: 'My Upcoming Sessions',
+          none: 'No appointments yet.'
+        },
+        pt: {
+          welcome: 'Bem‑vindo!',
+          selectRole: 'Selecione seu papel:',
+          patient: 'Sou Paciente',
+          staff: 'Sou Funcionário',
+          subtitle: 'Agendamento self‑service e painel de engajamento',
+          newAppt: 'Novo Agendamento',
+          patientPh: 'Nome do paciente',
+          add: 'Agendar',
+          all: 'Próximas Sessões',
+          mine: 'Minhas Sessões',
+          none: 'Nenhum agendamento.'
+        },
+        es: {
+          welcome: '¡Bienvenido!',
+          selectRole: 'Seleccione su rol:',
+          patient: 'Soy Paciente',
+          staff: 'Soy Empleado',
+          subtitle: 'Panel de reservas autoservicio y gestión de pacientes',
+          newAppt: 'Nueva Cita',
+          patientPh: 'Nombre del paciente',
+          add: 'Agendar',
+          all: 'Próximas Sesiones',
+          mine: 'Mis Sesiones',
+          none: 'Sin citas.'
+        }
+      };
+
+      function t(k) {
+        const l = getStoredValue(KEYS.LANG) || 'en';
+        return I18N[l] && I18N[l][k] ? I18N[l][k] : I18N.en[k];
+      }
+
+      /* Storage helpers */
+      function getStoredValue(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {
+          console.warn('localStorage not available:', e);
+          return null;
+        }
+      }
+
+      function setStoredValue(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {
+          console.warn('localStorage not available:', e);
+        }
+      }
+
+      const load = () => {
+        try {
+          return JSON.parse(getStoredValue(KEYS.APPTS) || '[]');
+        } catch (e) {
+          console.warn('Error loading appointments:', e);
+          return [];
+        }
+      };
+
+      const save = d => {
+        try {
+          setStoredValue(KEYS.APPTS, JSON.stringify(d));
+        } catch (e) {
+          console.warn('Error saving appointments:', e);
+        }
+      };
+
+      /* Theme */
+      function setTheme(th) {
+        if (th === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+        setStoredValue(KEYS.THEME, th);
+        const iconPath = $('#iconThemePath');
+        if (iconPath) {
+          iconPath.setAttribute('d', th === 'dark' 
+            ? 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z' 
+            : 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707M17.657 17.657l.707.707M12 5a7 7 0 000 14 7 7 0 000-14z'
+          );
+        }
+      }
+
+      /* Lang */
+      function applyLang() {
+        const elements = [
+          { id: 'txtWelcome', key: 'welcome' },
+          { id: 'txtSelectRole', key: 'selectRole' },
+          { id: 'btnPatient', key: 'patient' },
+          { id: 'btnStaff', key: 'staff' },
+          { id: 'txtSubtitle', key: 'subtitle' },
+          { id: 'btnAdd', key: 'add' },
+          { id: 'emptyState', key: 'none' }
+        ];
+
+        elements.forEach(({ id, key }) => {
+          const el = $(id);
+          if (el) el.textContent = t(key);
+        });
+
+        // Handle special cases
+        const newApptEl = $('#txtNewAppt');
+        if (newApptEl && newApptEl.childNodes[2]) {
+          newApptEl.childNodes[2].textContent = ' ' + t('newAppt');
+        }
+
+        const patientNameEl = $('#patientName');
+        if (patientNameEl) {
+          patientNameEl.placeholder = t('patientPh');
+        }
+
+        render();
+      }
+
+      /* UI helpers */
+      function setupRole(role) {
+        setStoredValue(KEYS.ROLE, role);
+        const overlay = $('#roleOverlay');
+        if (overlay) overlay.classList.add('hidden');
+        
+        const patientNameContainer = $('#patientName');
+        const appointmentsHeader = $('#appointmentsHeader');
+        
+        if (role === 'staff') {
+          // Staff can see and edit patient name field
+          if (patientNameContainer) {
+            patientNameContainer.style.display = 'block';
+            patientNameContainer.value = '';
+            patientNameContainer.required = true; // Make it required for staff
+          }
+          if (appointmentsHeader) {
+            appointmentsHeader.textContent = t('all');
+          }
+        } else {
+          // Patient role: hide the name field and remove required attribute
+          if (patientNameContainer) {
+            patientNameContainer.style.display = 'none';
+            patientNameContainer.required = false; // Remove required attribute
+            patientNameContainer.value = ''; // Clear any existing value
+          }
+          if (appointmentsHeader) {
+            appointmentsHeader.textContent = t('mine');
+          }
+          
+          // Get patient name if not stored
+          if (!getStoredValue(KEYS.NAME)) {
+            const name = prompt('Please enter your name:') || 'Anonymous';
+            setStoredValue(KEYS.NAME, name);
+          }
+        }
+        
+        const appointmentsSection = $('#appointments');
+        if (appointmentsSection) {
+          appointmentsSection.classList.remove('hidden');
+        }
+        
+        render();
+      }
+
+      function render() {
+        const role = getStoredValue(KEYS.ROLE);
+        const me = getStoredValue(KEYS.NAME);
+        let appts = load().sort((a, b) => new Date(a.dt) - new Date(b.dt));
+        
+        if (role === 'patient' && me) {
+          appts = appts.filter(a => a.n === me);
+        }
+        
+        const list = $('#appointmentsList');
+        const emptyState = $('#emptyState');
+        
+        if (!list) return;
+        
+        list.innerHTML = '';
+        
+        if (!appts.length) {
+          if (emptyState) emptyState.classList.remove('hidden');
+          return;
+        }
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        
+        appts.forEach((a, i) => {
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center border-b pb-2 last:border-b-0';
+          
+          const dateObj = new Date(a.dt);
+          const formattedDate = dateObj.toLocaleString();
+          
+          li.innerHTML = `
+            <div>
+              <p class="font-medium">${escapeHtml(a.n)}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">${formattedDate}</p>
+            </div>
+            ${role === 'staff' ? `<button data-i="${i}" class="del text-red-600 hover:text-red-800 px-2 py-1 rounded">Cancel</button>` : ''}
+          `;
+          list.appendChild(li);
+        });
+      }
+
+      function escapeHtml(unsafe) {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      /* Events */
+      $('#btnPatient').onclick = () => setupRole('patient');
+      $('#btnStaff').onclick = () => {
+        const password = prompt('Enter staff password:');
+        if (password === 'Yoda@NCI2025') {
+          setupRole('staff');
+        } else {
+          alert('Invalid password. Access denied.');
+        }
+      };
+
+      $('#bookingForm').onsubmit = e => {
+        e.preventDefault();
+        console.log('Form submitted'); // Debug
+        
+        const role = getStoredValue(KEYS.ROLE);
+        console.log('Current role:', role); // Debug
+        
+        const nameField = $('#patientName');
+        const dateField = $('#apptDate');
+        const timeField = $('#apptTime');
+        
+        console.log('Fields found:', {
+          nameField: !!nameField,
+          dateField: !!dateField,
+          timeField: !!timeField
+        }); // Debug
+        
+        if (!dateField || !timeField) {
+          console.error('Missing required fields');
+          alert('Form fields not found.');
+          return;
+        }
+        
+        let name;
+        if (role === 'staff') {
+          if (!nameField) {
+            console.error('Name field not found for staff');
+            alert('Patient name field not found.');
+            return;
+          }
+          name = nameField.value.trim();
+          if (!name) {
+            alert('Please enter a patient name.');
+            return;
+          }
+        } else {
+          // Patient role - get name from storage
+          name = getStoredValue(KEYS.NAME);
+          console.log('Patient name from storage:', name); // Debug
+          if (!name) {
+            alert('Patient name not found. Please refresh and try again.');
+            return;
+          }
+        }
+        
+        if (!dateField.value || !timeField.value) {
+          alert('Please select both date and time.');
+          return;
+        }
+        
+        console.log('Creating appointment:', { name, date: dateField.value, time: timeField.value }); // Debug
+        
+        const dt = dateField.value + 'T' + timeField.value;
+        const appts = load();
+        appts.push({ n: name, dt });
+        save(appts);
+        
+        console.log('Appointment saved, total appointments:', appts.length); // Debug
+        
+        // Reset form fields
+        dateField.value = '';
+        timeField.value = '';
+        if (role === 'staff' && nameField) {
+          nameField.value = '';
+        }
+        
+        render();
+        
+        // Show success message
+        alert('Appointment booked successfully!');
+      };
+
+      $('#appointmentsList').onclick = e => {
+        if (e.target.matches('.del')) {
+          const index = parseInt(e.target.dataset.i);
+          if (!isNaN(index)) {
+            const appts = load();
+            appts.splice(index, 1);
+            save(appts);
+            render();
+          }
+        }
+      };
+
+      $('#themeToggle').onclick = () => {
+        const currentTheme = root.classList.contains('dark') ? 'light' : 'dark';
+        setTheme(currentTheme);
+      };
+
+      $('#langEn').onclick = () => {
+        setStoredValue(KEYS.LANG, 'en');
+        applyLang();
+      };
+
+      $('#langPt').onclick = () => {
+        setStoredValue(KEYS.LANG, 'pt');
+        applyLang();
+      };
+
+      $('#langEs').onclick = () => {
+        setStoredValue(KEYS.LANG, 'es');
+        applyLang();
+      };
+
+      $('#logoff').onclick = () => {
+        try {
+          localStorage.removeItem(KEYS.ROLE);
+          localStorage.removeItem(KEYS.NAME);
+        } catch (e) {
+          console.warn('Error clearing localStorage:', e);
+        }
+        
+        const overlay = $('#roleOverlay');
+        const appointmentsSection = $('#appointments');
+        
+        if (overlay) overlay.classList.remove('hidden');
+        if (appointmentsSection) appointmentsSection.classList.add('hidden');
+      };
+
+      /* Init */
+      function init() {
+        console.log('Initializing application...'); // Debug
+        
+        const savedTheme = getStoredValue(KEYS.THEME) || 'light';
+        setTheme(savedTheme);
+        applyLang();
+        
+        const savedRole = getStoredValue(KEYS.ROLE);
+        console.log('Saved role:', savedRole); // Debug
+        
+        if (savedRole) {
+          setupRole(savedRole);
+        } else {
+          const overlay = $('#roleOverlay');
+          if (overlay) {
+            overlay.classList.remove('hidden');
+            console.log('Showing role overlay'); // Debug
+          } else {
+            console.error('Role overlay not found'); // Debug
+          }
+        }
+        
+        // Ensure form event is attached
+        const form = $('#bookingForm');
+        if (form) {
+          console.log('Booking form found and event attached'); // Debug
+        } else {
+          console.error('Booking form not found!'); // Debug
+        }
+      }
+
+      // Start the application
+      document.addEventListener('DOMContentLoaded', init);
+      
+      // Fallback for immediate execution
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    </script>
+  </body>
+</html>
